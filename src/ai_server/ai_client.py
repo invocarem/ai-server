@@ -26,7 +26,7 @@ class AIClient:
         self,
         messages: List[Message],
         model: str,
-        max_tokens: int = 256,
+        max_tokens: int = 4096,
         temperature: float = 0.0
     ) -> str:
         """
@@ -57,7 +57,7 @@ class AIClient:
         self,
         prompt: str,
         model: str,
-        max_tokens: int = 256,
+        max_tokens: int = 4096,
         temperature: float = 0.0
     ) -> str:
         """
