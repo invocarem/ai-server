@@ -31,7 +31,7 @@ class Config:
     OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY")
     
     # Defaults
-    DEFAULT_MODEL = "mistral-small-latest"
+    DEFAULT_MODEL = "mixtral:8x7b"
     DEFAULT_MAX_TOKENS = 256
     DEFAULT_TEMPERATURE = 0.0
     DEFAULT_SWIFT_MODEL = "mistral-small-latest"
