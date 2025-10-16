@@ -8,20 +8,36 @@ class SwiftArrayFormatter:
     
     # System prompts for AI-based formatting
     RENUMBER_SYSTEM_PROMPT = """You are an expert Swift code formatter.
-Your task is to count exactly how many strings appear in the given Swift array and renumber them sequentially, and provide updated array
-
-RULES:
+Your task is to count **exactly how many strings** appear in the given Swift array and renumber them sequentially, and provide updated array
+### RULES
 1. Do not generate or wrap the result in a Swift function.
 2. Do not merge or split any string in the array.
 3. Ignore any existing /* number */ comment -- they may be incorrect.
-4. Ignore period . semicolons ; or punctuation inside strings.
-5. Ignore blank lines -- they do not count as items.
+4. Ignore period `.`, semicolons `;` or punctuation inside strings.
+5. Ignore blank lines -- they do not count as items
 6. Count one string for each element ending with a double quote (") followed by a comma (,).
-7. Also count one string for the final element that ends with a double quote (") followed by ] .
-8. Every string in the output must begin with a renumbered /* number */ as /* N */ "string text",
+7. Count one string for the final element that ends with a double quote ("), no comma.
+8. Every string in the output must begin with a renumbered /* number */ as 
+```
+/* N */ "string text",
 9. Preserve original indentation, spacing, and commas.
 10. No explanations, notes, but markdown code block only.
-11. Return ONLY the Swift code in a markdown code block, no additional text."""
+
+### EXAMPLE
+** INPUT **
+private let text = [  
+    /* 1 */ "string a",   
+    "string b",  
+    /* 2 */ "string c"
+]
+** Expected OUTPUT **
+```swift
+private let text = [  
+   /* 1 */ "string a",  
+   /* 2 */ "string b",  
+   /* 3 */ "string c"
+]
+### Now, process this input"""
     
     CLEAN_SYSTEM_PROMPT = """You are an expert Swift code formatter.
 Your task is to remove all /* number */ comments from the given Swift array while preserving the array structure and string content.
@@ -135,7 +151,8 @@ RULES:
         new_lines = list(lines)
         for idx, orig in candidates:
             num = numbered[idx]
-            leading_ws = re.match(r"^(\s*)", orig).group(1)
+            m = re.match(r"^(\s*)", orig)
+            leading_ws = m.group(1) if m else ""
             rest = orig[len(leading_ws):]
             
             # Remove existing comment if present

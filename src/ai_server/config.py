@@ -38,13 +38,13 @@ class Config:
     DEFAULT_SWIFT_MAX_TOKENS = 512
     
     # Timeouts
-    REQUEST_TIMEOUT = 120
+    REQUEST_TIMEOUT = 180
     
     # Provider-specific default endpoints
     PROVIDER_ENDPOINTS = {
         "openai": "https://api.openai.com/v1/chat/completions",
         "mistral": "https://api.mistral.ai/v1/chat/completions",
-        "ollama": "/api/generate",  # Relative path, needs base URL
+        "ollama": "/v1/chat/completions",  # OpenAI-compatible endpoint (Ollama v0.1.17+)
     }
 
     @classmethod
@@ -52,20 +52,18 @@ class Config:
         """Get the API endpoint based on provider configuration."""
         provider = cls.AI_PROVIDER
         
-        # Only use Ollama URL if provider is explicitly set to ollama
-        if provider == "ollama" and cls.OLLAMA_URL:
-            return cls.OLLAMA_URL.rstrip("/") + cls.PROVIDER_ENDPOINTS["ollama"]
+        # Handle Ollama provider
+        if provider == "ollama":
+            base_url = cls.OLLAMA_URL or cls.API_BASE_URL or "http://localhost:11434"
+            return base_url.rstrip("/") + cls.PROVIDER_ENDPOINTS["ollama"]
         
-        # If custom base URL is provided, use it
+        # For OpenAI-compatible cloud APIs (OpenAI, Mistral, etc.)
         if cls.API_BASE_URL:
-            if provider == "ollama":
-                return cls.API_BASE_URL.rstrip("/") + cls.PROVIDER_ENDPOINTS["ollama"]
-            else:
-                # For OpenAI-compatible APIs (OpenAI, Mistral, etc.)
-                if "/chat/completions" in cls.API_BASE_URL:
-                    return cls.API_BASE_URL
-                # If base URL doesn't have the endpoint, add it
-                return cls.API_BASE_URL.rstrip("/") + "/chat/completions"
+            # If full endpoint is provided, use it
+            if "/chat/completions" in cls.API_BASE_URL:
+                return cls.API_BASE_URL
+            # If base URL doesn't have the endpoint, add it
+            return cls.API_BASE_URL.rstrip("/") + "/chat/completions"
         
         # Use default provider endpoints
         return cls.PROVIDER_ENDPOINTS.get(provider, cls.PROVIDER_ENDPOINTS["openai"])
@@ -84,17 +82,18 @@ class Config:
     @classmethod
     def is_openai_compatible(cls) -> bool:
         """Check if the provider uses OpenAI-compatible API."""
-        # All providers except Ollama use OpenAI-compatible format
-        return cls.AI_PROVIDER != "ollama"
+        # All providers use OpenAI-compatible format (Ollama v0.1.17+ supports it)
+        return True
     
     @classmethod
     def is_configured(cls) -> bool:
         """Check if AI provider is configured."""
-        # Legacy Ollama support
-        if cls.OLLAMA_URL:
-            return True
-        # OpenAI-compatible providers need an API key
-        if cls.is_openai_compatible() and cls.get_api_key():
+        # Ollama doesn't require an API key (local server)
+        if cls.AI_PROVIDER == "ollama":
+            # Check if OLLAMA_URL or API_BASE_URL is set
+            return bool(cls.OLLAMA_URL or cls.API_BASE_URL)
+        # OpenAI-compatible cloud providers need an API key
+        if cls.get_api_key():
             return True
         return False
     

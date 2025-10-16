@@ -102,16 +102,24 @@ AI_PROVIDER=ollama
 API_BASE_URL=http://localhost:11434
 ```
 
+**Note:** Ollama v0.1.17+ supports OpenAI-compatible endpoints. This server now uses `/v1/chat/completions` endpoint for Ollama.
+
+If your Ollama is running on a different host/port:
+
+```env
+AI_PROVIDER=ollama
+API_BASE_URL=http://your-ollama-host:11434
+```
+
 #### Configuration Options:
 
-- `AI_PROVIDER` - Which API format to use: `openai` (for Mistral, OpenAI, etc.) or `ollama` (default: `openai`)
-- `API_KEY` - Your API key for Mistral or OpenAI
-- `API_BASE_URL` - API endpoint (default: `https://api.mistral.ai/v1` for OpenAI provider)
+- `AI_PROVIDER` - Which provider to use: `openai` (for Mistral, OpenAI, etc.) or `ollama` for local Ollama (default: `openai`)
+- `API_KEY` - Your API key for Mistral or OpenAI (not needed for Ollama)
+- `API_BASE_URL` - API endpoint (default: `https://api.mistral.ai/v1` for OpenAI provider, `http://localhost:11434` for Ollama)
 
 **Legacy Ollama variables** (still supported):
 
-- `OLLAMA_URL` - URL of your Ollama instance
-- `OLLAMA_API_KEY` - Ollama API key
+- `OLLAMA_URL` - URL of your Ollama instance (use `API_BASE_URL` instead)
 
 If no provider is configured, the server falls back to local formatting.
 
@@ -173,6 +181,10 @@ Same as above but returns simplified response:
   "formatted_code": "```swift\n...\n```"
 }
 ````
+
+```bash
+$ curl -X POST http://localhost:5000/renumber-verses   -H "Content-Type: application/json"   -d @input.json -o output.json
+```
 
 ### Clean Verses
 
